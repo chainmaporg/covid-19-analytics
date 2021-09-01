@@ -1,0 +1,199 @@
+nike data Lake 2.0
+
+Data lake 2.0 has evolved from...
+Four Key Principles
+Uniform Security
+Data Custody
+Federated Security Enforcement
+Communicating Our Data Lake Resources
+
+Uniform Security
+Enforcement across all Nike Data in the data lake
+Positions us to be indifferent to changing regulations
+We are engineering a next generation data lake where we can place policies, as needed, on any data in the data lake.  This positions Nike to be indifferent to new and evolving security and privacy requirements, whether they originate within Nike or outside the organization.
+
+Data Custody
+At ingestion of data into the data lake, teams transfer custody to the managers of the data lake.
+Managers are responsible for security of the data when it is inside the data lake.
+Data lake managers: governors, data managers, and data stewards have responsibility for data security when data resides within the lake.
+There is a managed and audited transfer of custody when data leaves the lake.  Those who transfer data outside of the lake take responsibility for adhering to all security, privacy, and data usage requirements, such as but not limited to the requirements defined in GDPR, CCPA, and Nike data security policies.
+Applications and teams that transfer data out of the lake have the responsibility to:
+ Comply with updating of catalog lineage models, which track data custody.
+Enforce proper data security and governance while the data is in their custody
+Not transfer custody to another party without authorization.
+
+Nike cannot be indifferent to new and evolving security and privacy requirements unless we know where our data resides.  This implies tracking of data lineage, both inside and outside the data lake.
+
+Federated Security Enforcement
+Federated, simply means, across many resources.  Nike is using Privacera Ranger, which is the enterprise supported version of open source Apache Ranger.  Ranger, allows Nike to write fine grained access control policies for access to data.  It distributes its security enforcement points across many instances and across the types of tools that we use in our data lake.
+Scalable security enforcement points federated across various compute instances
+Presto
+Spark
+Kafka
+Snowflake
+Nifi (new)
+Federated audit log collection
+Routing of all access granted and access denied events, which originate at the enforcement points, to centralized aggregation services
+Solr – for use by Ranger 2.0 Security Zone administrators who monitor and resolve security access issues
+Kafka for CIS anomaly detection, and other analytics purposes
+Routing of Ranger security policy administrative configurations and changes over time
+
+Communicating Our Data Lake Resources
+To derive real value out of data, users have to be able to locate, understand, and gain access to data.  The metadata catalog project also known as MdCat has been designed to tackle these challenges.  Metadata Catalog provides the following features:
+A catalog of the databases, tables, and table columns in table based lake storage such as Hive Metastores, Snowflake, and Teradata
+A catalog of other non-table bases storage such as Kafka Streams, Nifi flows, and S3 storage to name a few
+The ability to create teams and add team members who claim ownership of the table based lake storage
+The ability for teams to claim ownership of storage
+The ability for teams to keep storage team private, or to share it with catalog users.
+Team members shall be able to create temp tables in Snowflake, Hive Metastores, without having to surround these tables with comprehensive business context
+When teams make data lake resources public, a workflow will be initiated.  This workflow requires a minimum amount of business context to be added, and supports a comprehensive amount of business context association with the data lake storage resource.
+Catalog users, such as Data Scientists, shall be able to find, locate, understand the business context, and gain access to data directly from the Metadata Catalog.
+Catalog shall be aware of and help track regional distribution of Nike data across the multi-region data lake.
+
+
+
+Data Lake Maturity Model
+As organizations evolve their data lake strategies, there is a natural progression as described in the following Data Lake Maturity Model.
+Data Lake 1.0 can be defined largely as unlocking the power of analytics on data that teams are already familiar with.  These teams intuitively understand the data, the business context surrounding the data, what it means and how it's used.
+As organizations progress through the Store phase and toward the Govern phase they attempt to use the data lake to perform analytics on data that is owned by others – data that they are not intimately familiar with. It is widely reported, across numerous industries and authoritative sources, that users spend as much as 80% of their time conducting data archaeology, resulting in lost productivity and missed opportunity costs.  Ultimately the data lake starts to be referred to as a Data Swamp as users express their frustration with their inability to find, access, and understand the data. The data swamp is nobody's fault.  In fact, it is a sign of success and enthusiasm.  Success achieved by bringing vast data together and delivering a platform capability that users want to use.  It is a sign of enthusiasm for the potential of the solution to serve larger organizational needs, by unlocking the data for wider use across the organization.
+Data Lake 2.0 can be defined largely as unlocking the power of analytics on data that others own, on data that users are not familiar with.  To achieve that objective, organizations need to transition through the remainder of the phases: Govern, Automate, Optimize.
+Ultimately, our goal is help every member of the business make better data driven decisions.  If you have a body you are an analyst.
+
+
+What is ingestion, and how will Nike manage it?
+Ingestion includes the processes which bring data into the data lake
+Data is moved from typical transactional systems into the data lake.
+Data that passes through Data Lake ingestion must be in a queryable structure that can power Data, Analytics and AI products
+Nike Streaming Platform (NSP) is an Enterprise Platforms managed Kafka service.  NSP is the preferred ingestion tool.
+
+How will we work with data in the lake?
+Users will work with Spark and Presto.
+Spark users will query using Spark SQL
+Loading of files directly from / to  object storage is deprecated
+
+What is Presto?
+Presto is query tool.  Users can write standard SQL to query data stored in a variety of platforms
+Presto is a big data tool.  It has no data storage of its own.  Rather, it is used to natively access other data storage layers.
+Presto is being integrated with Privacera Ranger to provide fine grained access control across all tables that are accessible to Presto
+Nike is partnering with Starburst Data to provide an Enterprise supported version of Presto.
+
+What data storage layers will Nike integrate with Presto?
+We are positioning Presto as a tool that will allow users to perform federated queries across data on:
+ AWS S3 when front ended with a Hive Metastore table
+Snowflake
+Teradata
+Kafka topics that can be treated like a table.
+
+
+How does a Data Lake compare to a Data Warehouse?
+In data warehousing we spend a lot of time performing Extract Transform Load (ETL) processes to curate data on the way into the data warehouse
+In a data lake we perform ELT.  
+Getting data into the lake should be easy.  
+The strategy is to ingest the data in its raw form
+Cleansing and curation jobs transform data, to prepare it for consumption, after it has been landed in the lake.
+A data warehouse is highly structured and efficient for answering the questions for which it has been structured.
+The less structured approach taken in a data lake is more suited for exploring data, and for learning from data.
+
+
+Can we egress data from the lake?
+Yes, we believe it is natural to perform analytics on data within the lake and the egress that data for uses outside of the data lake.
+Example: use data in the lake to build recommendations.  Export those recommendations to another account where they are stored on DynamoDB and served via REST APIs to consumers on the mobile apps.
+Example: use data in the lake to serve Tableau reports and views.  Cache on the tableau server to improve performance and reduce the cost of running a new query for each user view.
+
+How is access control being defined and enforced?
+Apache Ranger 2.0 is being used as a security policy authoring tool.  Ranger provides a light weight, scalable, distributed security policy capabilities.
+Nike is partnering with Privacera, who provides an enterprise supported version of Ranger.
+
+What capabilities will Ranger secure?
+Tables defined in the Hive Metastore where storage is in file format on AWS S3
+Snowflake Tables
+Kafka Topics
+NIFi Resource Flows
+Teradata tables when accessed via Presto
+
+
+What is the role of the Hive Metastore?
+In the world of big data we separate storage and compute to lower costs and enable bringing varied compute capability to data.
+Typically, this means storing large files in some type of object store. For Nike, that generally means storing Parquet files on AWS S3.  Files could be in other formats such as nested JSON, ORC, or CSV.
+With some compute capabilities, such as Spark, it is possible to directly load the files from object storage.
+With other compute capabilities, such a Presto, it is only possible to write SQL queries over database tables
+The Hive Metastore provides a table abstraction over the Parquet files.  It organizes these files into databases and tables.
+This allows us to write SQL queries using various technologies: Presto, and Spark SQL being the primary ones at Nike.
+
+What does it mean to bring the Hive Metastore under governance?
+In Data Lake 1.0 Nike has been running an unsecured Hive Metastore
+That means a metastore without governance, without security control
+In this environment, any user can perform actions from tools such as Spark to create, or drop databases and tables on the Metastore.
+This presents a significant production risk, as users could inadvertently drop production tables from the Metastore.
+Privacera Ranger brings security control and governance to the metastore. 
+Some users may only have Select privileges over databases and tables defined in the metastore
+Some users may have the ability to author and edit security policies for the databases and tables defined in the metastore
+Some users may have the ability to create tables and views within a database, but not drop them
+
+
+What are the capabilities of Ranger for protecting tables?
+Given a database and table, policies can be created which
+Grant or deny users access to an entire database
+Grant users access to only some tables in a database, but not others
+Grant users access to only some table columns, but not others
+Perform row based filtering based on field value.  Grant a user access to retail_pos data but only to rows where retail_partner_id is flkr
+Perform field masking such as masking a user's email, phone number, or just the month and day of birth, preserving the year.
+
+What are the plans for auditing?
+All Ranger access granted and access denied events that occur at various enforcement points are being routed to Kafka
+These events are then routed to S3 for permanent storage
+These events are also routed to CIS for anomaly detection and action.
+All Ranger configuration changes and policy edits are routed to Kafka to create a permanent record of all system and user configuration changes.
+
+How can we resolve user access issues?
+In addition to routing events to Kafka, enforcement points route all access granted and access denied events to Solr.
+Solr backs the Ranger UI
+System administrators can find the access denied event using the UI and see which policy evaluation resulted in the access grant or deny outcome.
+
+How are we improving data usability?
+The first big unlock here is Metadata Catalog
+The catalog is designed to provide a complete understanding of the context of the data we have in the data lake: where it originates, what it means, where it is located, how to get access, and the business context for that data.
+The second big unlock highly automated access to data
+All data is being brought under access control
+Privacera Ranger provides access control enforcement
+Ranger REST APIs will participate in automated work flows.
+In Metadata Catalog find a table, or view that looks interesting, request access
+
+What is Collibra?
+Collibra is a data governance tool.  It is being used to tie business terms to tables and fields in a logical data model.  The logical data model is tied back to the physical data models in Metadata Catalog.
+
+How are we aligning systems with the organizational groups who manage and run them?
+Governance teams are formed around Subject Areas.  https://nike.ent.box.com/v/DataSubjectAreaMap
+Subject Areas are one of three taxonomies that Nike uses to classify data.  The other two are Business Capability, and Domain.
+Subject Area is a multi-tier hierarchy.  D1 is the top tier, the most coarse grained, layer of the hierarchy.
+We are aligning Subject Area D1 across the following capabilities
+Collibra governance teams work by Subject Area D1
+Metadata Catalog management teams who add context in the catalog are grouped by and authorized by Subject Area D1
+Privacera Ranger Security Zone Administrators, who can write data access control policies, are organized and authorized by Subject Area D1
+
+How is Snowflake changing?
+Traditionally, Snowflake relied on views to enforce access control policies.  That is not viable at Nike scale as the number of views to achieve fine grained access control explodes.
+Nike is working with the Privacera Ranger team and with Snowflake to change Snowflake's grant model to achieve fine grained access control without views.
+Policies will be authored in Privacera Ranger
+Privacera is providing a Snowflake adaptor that adapts Ranger policies to Snowflake grants.
+The Snowflake user experience will remain unchanged.  Users can continue to use existing tools over Snowflake.
+
+Can I continue to work with Databricks Spark?
+Yes, we have full integration between Ranger and Databricks Spark
+
+Can I continue to work with AWS EMR?
+AWS EMR has some security limitations.  Nike is working with AWS to resolve these issues and will have feature parity with Databricks Spark by July 2020 (AWS missed that commitment)
+
+Will AWS Athena be available?
+AWS Athena does not support fine grained access control via Ranger.
+AWS Athena is being deprecated
+Nike is providing a managed Presto service as an alternative.
+
+
+
+
+
+
+
+
+

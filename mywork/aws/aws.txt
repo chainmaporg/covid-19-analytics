@@ -1,0 +1,187 @@
+AWS Nike Challenges:
+====================
+
+https://nike.ent.box.com/s/q3i4muixp6x7wyw0au6so8btoze57t1c
+
+
+1. How do we reconcile the fact that there is still 15pb of data in us-east-1 while we recommend us-west-2 to be primary region where snowflake, teradata, s3, kakfa data exists
+2. Compute and NSP resources are integrated with Privacera Ranger, which provides, enforces, and audits fine grained access control per user
+3. Align this with the multi-region Ranger strategy, and the AD Synch Stragegy proposed herein.
+4. AWS S3 path
+5. Database Name
+6. Table Name
+7. Field names, hive compatible data types for each field, data sensitivity level (such as public, confidential, highly-confidential) or appropriate tags.
+8. Parquet file partitioning as applicable
+9. Compression as applicable
+10. Encryption as applicable
+11. Policy authoring shall be performed by authorized users using the Apache Ranger Web User Interface.  Assuming we can pass data confidentiality levels, or other tags, with the meta-data, the REST API can create policies in Apache Ranger to provide all users access to public data and to deny or limit access to confidential or highly-confidential data.  Accordingly, much of the policy definition activity could be automated, and then modified as needed using the Ranger user interface.
+
+Data access
+===========
+
+0. Nike's Waffle-Iron framework quickly deploys AWS accounts in a self-service fashion with consistent best-practice configurations that are secure and compliant with Nike Information Security policy (NISP) and Nike Enterprise Cloud Governance.   Because of the consistency, security and compliance benefits provided by Waffle Iron, it is the only Nike-approved way to create new AWS accounts.
+1. Database – for instance deny access to a collection of tables for some users.
+2. Database Table – for instance user one can have all tables, user two can only have US Sales Data.
+3. Table columns – for instance user one can have all 47 columns, user two can have columns 1, 2, and 47 with 3 through 6 not being allowed.
+4. Table row filtering – for instance filter out any rows that have a particular attribute
+5. Data field masking – for instance mask SSN so only last 4 digits show.
+6. Account Creation and services----
+
+https://aws.amazon.com/blogs/security/how-to-establish-federated-access-to-your-aws-resources-by-using-active-directory-user-attributes/
+
+When a new AWS account is provisioned via Waffle Iron, an empty account is created that includes integration with services such as:
+Cloud Red for tagging management
+CloudHealth for cost and billing visibility and best practice remediation
+DivvyCloud for monitoring secure account configuration
+Okta for Enterprise Single-Sign-On
+TrendMicro for File Integrity Management (FIM) in accounts that have FIM compliance requirements for Payment Card Information (PCI) or other compliance requirements
+Crowdstrike
+CloudKnox for IAM visibility
+Centralized collection of CloudTrail logging
+GuardDuty for Threat Detection
+AWS Config for Resource Change Tracking
+Nike Enterprise managed IAM roles
+
+AWS Waffle accounts leverage federated roles from Nike's AD/Okta environment.  This means that access is assigned to a Nike AD group which then is sent to AWS.  Access is not managed directly within AWS and all access is transient.   AWS IAM Users are not federated accounts, and are local to the AWS account.    AWS IAM Users shall not be used for AWS console access.
+
+
+Others:
+-------
+Mandatory fields - database, table, s3_location, data_format, column_structure, data_sensitivity_level for table
+Optional fields - data_compression_format, partitioned_by
+This meta-data could be captured as 'COMMENT' in Hive metastore.
+
+The general approach to smart default rules is as follows:
+We align with Nike standards for data security designations which are: Public, Restricted, Highly Confidential
+A 'data_security_zone' provides the mechanism to group policies for governed policy administration.
+Ranger administrators are admins over a security zone
+A "security_group" matches an AD Security Group.
+This will become a "ROLE" in Apache Ranger
+Default policies will be tied to the ROLE.  
+In Active Directory, many users can be assigned to a role.  This will authorize users to the data.
+Users and their roles are synchronized from AD into Apache Ranger.
+We automate access per the following rules
+A dataset with a data_sensitivity_level of public is available to anyone who is mapped to the corresponding AD ROLE (full_access_security_group)
+Fields are marked public and are visible to anyone who has the role.
+Users who do not have the role are denied access.
+All fields must be public.  An http 400 Bad Request is returned if a dataset is public and has any fields that are other than public.
+A value in the 'limited_access_security_group' will result in an http 400 Bad Request.
+A dataset with a data_sensitivity_level of restricted is available to anyone who is mapped to the corresponding AD ROLE (full_access_security_group)
+Fields marked anything other than public are visible to users who are in the full_access_security_group
+Ranger 'deny' column polices are defined to prohibit column access for users who are in the  ''limited_access_security_group''
+Deny column rules are more efficient to apply than masking every column value when serving data to those in the limited_access_security_group
+Ranger masking polices are defined to mask data for users who are in the  ''limited_access_security_group''
+Note: to increase access Ranger admins would
+Removal of the 'deny' policy would allow those users to see masked column values
+Change masking policies for various classifications of users
+Authorize a user to the other security group
+A dataset with a data_sensitivity_level of highly_confidential is NOT available to anyone
+The approach:
+Has all the same default policies as the restricted data
+In addition, we place a deny all policy in place
+Deny policies take precedence over grants
+An admin reviews and removes the deny in order to provide access.
+
+
+Technologies
+=============
+1. Spark
+2. Presto
+3. Apache Ranger - fine grained access control over data defined as tables within databases in the Hive Meta-Store
+5. Databricks
+6. AWS EMR
+7. Spark on Kubernetes
+8. Hyperflow
+9. Tensorflow
+10. Dask
+11. NIFI
+12. Delta Lake
+
+Data Lake Process
+=================
+1. In general move the body of work around Data Lake 2.0 from draft to accepted status.
+2. Define accepted ingestion patterns in the Data Lake
+3. Define the organization of data in the Data Lake and the Ranger Security Zones that will be configured
+4. Define the use of Ranger Security Zones across regions
+5. Align this with the multi-region Ranger strategy, and the AD Synch Stragegy proposed herein
+6. Define integrations and business process automation between NSP, Data Catalog, Nike Adapt, MAP
+7. AWS S3 Storage Layer - efine and reconcile the co-habitation of the bucket strategy for the existing NGAP walled garden and non-walled garden data with the new bucket policy and naming convention standards
+8. Define Hive Metastore integrations for existing US-EAST-1 with Nike Adapt
+9. Define and communicate the supported data lake technologies and the integration needs with Ranger for fine grained access control.
+10. Thrift Server, Hive Server 2, Hive Server 3, and Hive Metastore integration with compute across global deployment architecture
+
+
+Catalog
+=======
+1. catalog API
+2. asset technology
+3. Kafka connect lineage
+4. Atlas integration on lineage, airfloew DAG
+5. Nifi integration wity Atlas
+6. Lineage registartion contract
+
+
+Operation
+=========
+1. To get command line access to the aws account, you will need: awscli, install it with command: brew install awscli gimme-aws-creds, install it with command: brew install gimme-aws-creds
+2. 
+
+
+Cost Optimization
+==================
+
+AWS Tools:
+Compute Optimizer - recommendations on ideal provisioning for compute
+Trusted Advisor - all sorts of checks and recommendations for security, performance, cost concerns
+S3 Storage Lens - analyze S3 storage costs
+Well Architected Review
+Opportunities for cost savings in the Commerce account
+EC2 is the highest spend - lot's of over-provisioning out there
+Storage - lots of detached EBS volumes left over - waste $1 million / year
+DynamoDB - on-demand pricing recommended for 95%+ of tables used by Commerce services
+S3 - use intelligent tiering
+Modernization - stay current with new EC2 instance types and EBS volume types - provides greater performance and lower cost
+Consider subscribing to Cloud Center of Excellence Policies - get alerted for cost saving opportunities
+Recommend: create a process to review costs on a regular basis
+Call to Action
+Make cost savings/optimization a priority so time will be given to it
+Review costs on a regular basis
+Note challenges of accountability in shared AWS accounts
+Take a close look at your stuff - don't assume the problem is with other teams
+Upgrade EBS volumes to: GP3
+
+Containers
+==========
+Notes from AWS Senior Solution Architect:
+ECS is good for its simplicity
+ECS was created before Kubernetes became popular
+ECS is AWS-native - deep integration with AWS services
+Fargate provides increased security posture via the VM that each container executes within
+New AWS managed services for collecting metrics from containers
+Prometheus - metric collection
+Grafana - metric result reporting/dashboards etc
+AWS training
+https://ecsworkshop.com/
+https://www.eksworkshop.com/
+AWS classroom training
+https://www.aws.training/SessionSearch?pageNumber=1&courseId=53846&languageId=1
+https://www.aws.training/Details/eLearning?id=30260
+
+
+Event Driven architecture
+=========================
+
+- Choreography vs Orchestration
+- Amazon SQS/Amazon SNS/EventBridge/StepFunctions
+
+
+China for China
+=================
+
+Significant challenges deploying service to China
+AWS does not run AWS in China - 3rd party local company runs it in partnership with AWS 
+The Great Firewall - AWS Global network is physically separated from AWS China network
+Reliability and latency can be big problems
+Any content served up by Nike must be licensed via "ICP filing"
+Most but not all commonly used AWS services are available in China region
+Rework may be required when deploying Commerce services in China - be prepared
